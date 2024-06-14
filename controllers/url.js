@@ -1,8 +1,9 @@
 const shortid = require("shortid");
 const URL=require("../models/url")
-async function genurl(req,res){
+async function genurl (req,res){
     const body=req.body;
     const shortidd=shortid();
+    const allurls=await URL.find({});
     if(!body.url){
         return res.status(400).json({error:"url is req"});
     }
@@ -11,7 +12,10 @@ async function genurl(req,res){
         redirectURL:body.url,
         visitHistory:[]
     })
-    return res.json({id:shortidd})
+    return res.render("home",{
+        id:shortidd,
+        urls:allurls
+    })
 }
 module.exports={
     genurl
