@@ -1,10 +1,13 @@
 const express=require("express");
 const connecttomongo=require("./connect")
 const staticroute=require("./routes/staticrouter")
+const cookieparser=require("cookie-parser")
+const {restricttologgedinusers,checkauth}=require("./middlewares/auth")
 const URL=require("./models/url")
 const path=require("path")
 const app=express()
 const PORT=8000
+app.use(cookieparser());
 app.set('view engine', "ejs")
 app.set("views",path.resolve("./views"));
 app.use(express.json())
@@ -14,9 +17,10 @@ connecttomongo("mongodb://localhost:27017/short-url")
 .catch((err) => {
     console.log("Not Connected to Database ERROR! ", err);
 });
-app.use("/",staticroute)
+app.use("/",checkauth,staticroute)
 const routeurl=require("./routes/url")
-
+const routeuser=require("./routes/user")
+app.use("/user",routeuser);
 app.get("/test", async (req, res) => {
     try {
         const allurls = await URL.find({});
@@ -45,5 +49,5 @@ app.get("/url/:shortid", async (req,res)=>{
         res.status(404).send("URL not found"); // Handle missing entry
       }
 })
-app.use("/url",routeurl);
+app.use("/url",restricttologgedinusers,routeurl);
 app.listen(PORT,console.log(`Server started at port ${PORT}`))
